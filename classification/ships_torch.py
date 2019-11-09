@@ -13,7 +13,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 from torch.utils.data import TensorDataset
-from skimage import io
+from torchvision import datasets, models, transforms
+from skimage import io, transform
 
 
 def make_dir(path):
@@ -29,6 +30,24 @@ def imshow(img):
     npimg = img.numpy()
     plt.imshow(np.transpose(npimg, (1, 2, 0)))
     plt.show()
+
+
+def set_parameter_requires_grad(model, feature_extracting):
+    if feature_extracting:
+        for param in model.parameters():
+            param.requires_grad = False
+
+
+def initialize_model(num_classes, feature_extract, use_pretrained=True):
+    # Initialize these variables which will be set in this if statement. Each of these
+    #   variables is model specific.
+    model_ft = models.alexnet(pretrained=use_pretrained)
+    set_parameter_requires_grad(model_ft, feature_extract)
+    num_ftrs = model_ft.classifier[6].in_features
+    model_ft.classifier[6] = nn.Linear(num_ftrs, num_classes)
+    input_size = 224
+
+    return model_ft, input_size
 
 
 class Net(nn.Module):
@@ -72,17 +91,19 @@ num_epochs = 15
 feature_extract = True
 
 data = pd.read_json(os.path.join(input_dir, 'shipsnet.json'))
-data.head()
+print(data.head())
 
 x = []
-for d in data['data']:
+for d in data['data'][:4000]:
     d = np.array(d)
-    x.append(d.reshape((3, 80 * 80)).T.reshape((80, 80, 3)))
+    orig_img = d.reshape((3, 80 * 80)).T.reshape((80, 80, 3))
+    resized_img = transform.resize(orig_img, (224, 224), anti_aliasing=False)
+    x.append(resized_img)
 plt.imshow(x[2])
 plt.show()
 x = np.transpose(np.array(x), (0, 3, 1, 2))
 
-y = np.array(data['labels'])
+y = np.array(data['labels'])[:4000]
 print(x.shape)
 print(y.shape)
 
@@ -114,8 +135,6 @@ trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuff
 testset = TensorDataset(torch.from_numpy(x_test), torch.from_numpy(y_test))
 testloader = torch.utils.data.DataLoader(testset, batch_size=batch_size, shuffle=False, num_workers=0)
 
-
-
 # get some random training images
 dataiter = iter(trainloader)
 images, labels = dataiter.next()
@@ -131,14 +150,14 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 print(device)
 
-net = Net()
+net, input_size = initialize_model(num_classes, feature_extract, use_pretrained=True)
 
-net.to(device)
+net = net.to(device)
 
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
 
-for epoch in range(50):  # loop over the dataset multiple times
+for epoch in range(num_epochs):  # loop over the dataset multiple times
 
     running_loss = 0.0
     for i, data in enumerate(trainloader, 0):
@@ -180,9 +199,9 @@ labels = labels.to(device, dtype=torch.long)
 
 print('GroundTruth: ', ' '.join('%5s' % classes[labels[j]] for j in range(batch_size)))
 
-net = Net()
+net, input_size = initialize_model(num_classes, feature_extract, use_pretrained=True)
 
-net.to(device)
+net = net.to(device)
 
 net.load_state_dict(torch.load(PATH))
 
@@ -193,7 +212,7 @@ outputs = net(images)
 
 _, predicted = torch.max(outputs, 1)
 
-print('Predicted: ', ' '.join('%5s' % classes[predicted[j]] for j in range(64)))
+print('Predicted: ', ' '.join('%5s' % classes[predicted[j]] for j in range(batch_size)))
 
 correct = 0
 total = 0
