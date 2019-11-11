@@ -247,7 +247,7 @@ with torch.no_grad():
         # save error images
         for i in range(len(predicted.cpu().numpy())):
             pred = predicted.cpu().numpy()[i]
-            io.imsave(r'{}\{}{}\{}.png'.format(savepath, pred, labels.cpu().numpy()[i], '%5s' % count),
+            io.imsave(r'{}\{}{}\{}.png'.format(savepath, pred, labels.cpu().numpy()[i], '%s' % count),
                       np.transpose(images[i].cpu().numpy(), (1, 2, 0)))
             count += 1
 
