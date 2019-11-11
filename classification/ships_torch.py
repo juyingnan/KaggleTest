@@ -183,8 +183,6 @@ for epoch in range(num_epochs):  # loop over the dataset multiple times
 
 print('Finished Training')
 
-PATH = './cifar_net.pth'
-torch.save(net.state_dict(), PATH)
 whole_model_PATH = './cifar_model.pth'
 torch.save(net, whole_model_PATH)
 
@@ -198,12 +196,6 @@ labels = labels.to(device, dtype=torch.long)
 # print images
 
 print('GroundTruth: ', ' '.join('%5s' % classes[labels[j]] for j in range(batch_size)))
-
-net, input_size = initialize_model(num_classes, feature_extract, use_pretrained=True)
-
-net = net.to(device)
-
-net.load_state_dict(torch.load(PATH))
 
 net = torch.load(whole_model_PATH)
 net.eval()
