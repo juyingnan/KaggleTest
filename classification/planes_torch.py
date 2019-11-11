@@ -98,7 +98,9 @@ x = list()
 y = list()
 print(len(data['data']))
 
-for index in random.sample(range(len(data['data'])), 4000):
+img_count = 2000
+
+for index in random.sample(range(len(data['data'])), img_count):
     d = np.array(data['data'].iloc[index])
     orig_img = d.reshape((3, 20 * 20)).T.reshape((20, 20, 3))
     resized_img = transform.resize(orig_img, (224, 224), anti_aliasing=False)
@@ -182,9 +184,8 @@ for epoch in range(num_epochs):  # loop over the dataset multiple times
         # print statistics
         running_loss += loss.item()
         print_freq = 20
-        if i % print_freq == print_freq - 1:  # print every 2000 mini-batches
-            print('[%d, %5d] loss: %.3f' % (epoch + 1, i + 1, running_loss / print_freq))
-            running_loss = 0.0
+    print('epoch [%d] loss: %.3f' % (epoch + 1, running_loss / (img_count / batch_size)))
+
 
 print('Finished Training')
 
