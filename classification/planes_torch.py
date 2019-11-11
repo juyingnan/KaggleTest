@@ -42,10 +42,10 @@ def set_parameter_requires_grad(model, feature_extracting):
 def initialize_model(num_classes, feature_extract, use_pretrained=True):
     # Initialize these variables which will be set in this if statement. Each of these
     #   variables is model specific.
-    model_ft = models.alexnet(pretrained=use_pretrained)
+    model_ft = models.resnet18(pretrained=use_pretrained)
     set_parameter_requires_grad(model_ft, feature_extract)
-    num_ftrs = model_ft.classifier[6].in_features
-    model_ft.classifier[6] = nn.Linear(num_ftrs, num_classes)
+    num_ftrs = model_ft.fc.in_features
+    model_ft.fc = nn.Linear(num_ftrs, num_classes)
     input_size = 224
 
     return model_ft, input_size
