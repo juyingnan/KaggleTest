@@ -42,10 +42,10 @@ def set_parameter_requires_grad(model, feature_extracting):
 def initialize_model(num_classes, feature_extract, use_pretrained=True):
     # Initialize these variables which will be set in this if statement. Each of these
     #   variables is model specific.
-    model_ft = models.resnet18(pretrained=use_pretrained)
+    model_ft = models.alexnet(pretrained=use_pretrained)
     set_parameter_requires_grad(model_ft, feature_extract)
-    num_ftrs = model_ft.fc.in_features
-    model_ft.fc = nn.Linear(num_ftrs, num_classes)
+    num_ftrs = model_ft.classifier[6].in_features
+    model_ft.classifier[6] = nn.Linear(num_ftrs, num_classes)
     input_size = 224
 
     return model_ft, input_size
@@ -85,7 +85,7 @@ num_classes = len(classes)
 batch_size = 64
 
 # Number of epochs to train for
-num_epochs = 60
+num_epochs = 100
 
 # Flag for feature extracting. When False, we finetune the whole model,
 #   when True we only update the reshaped layer params
@@ -186,7 +186,6 @@ for epoch in range(num_epochs):  # loop over the dataset multiple times
         print_freq = 20
     print('epoch [%d] loss: %.3f' % (epoch + 1, running_loss / (img_count / batch_size)))
 
-
 print('Finished Training')
 
 whole_model_PATH = './cifar_plane_model.pth'
@@ -247,7 +246,7 @@ with torch.no_grad():
         # save error images
         for i in range(len(predicted.cpu().numpy())):
             pred = predicted.cpu().numpy()[i]
-            io.imsave(r'{}\{}{}\{}.png'.format(savepath, pred, labels.cpu().numpy()[i], '%s' % count),
+            io.imsave(r'{0}\{1}{2}\{1}{2}_{3}.png'.format(savepath, pred, labels.cpu().numpy()[i], '%s' % count),
                       np.transpose(images[i].cpu().numpy(), (1, 2, 0)))
             count += 1
 
