@@ -74,7 +74,7 @@ input_dir = r'C:\Users\bunny\Desktop\ships-in-satellite-imagery'
 print(os.listdir(input_dir))
 
 # Models to choose from [resnet, alexnet, vgg, squeezenet, densenet, inception]
-model_name = "squeezenet"
+model_name = "alexnet"
 
 # Number of classes in the dataset
 classes = ('no', 'yes')
@@ -93,8 +93,10 @@ feature_extract = True
 data = pd.read_json(os.path.join(input_dir, 'shipsnet.json'))
 print(data.head())
 
+img_count = 4000
+
 x = []
-for d in data['data'][:4000]:
+for d in data['data'][:img_count]:
     d = np.array(d)
     orig_img = d.reshape((3, 80 * 80)).T.reshape((80, 80, 3))
     resized_img = transform.resize(orig_img, (224, 224), anti_aliasing=False)
@@ -103,7 +105,7 @@ plt.imshow(x[2])
 plt.show()
 x = np.transpose(np.array(x), (0, 3, 1, 2))
 
-y = np.array(data['labels'])[:4000]
+y = np.array(data['labels'])[:img_count]
 print(x.shape)
 print(y.shape)
 
@@ -176,10 +178,8 @@ for epoch in range(num_epochs):  # loop over the dataset multiple times
 
         # print statistics
         running_loss += loss.item()
-        print_freq = 40
-        if i % print_freq == print_freq - 1:  # print every 2000 mini-batches
-            print('[%d, %5d] loss: %.3f' % (epoch + 1, i + 1, running_loss / print_freq))
-            running_loss = 0.0
+        print_freq = 20
+    print('epoch [%d] loss: %.3f' % (epoch + 1, running_loss / (img_count / batch_size)))
 
 print('Finished Training')
 
@@ -241,7 +241,7 @@ with torch.no_grad():
         # save error images
         for i in range(len(predicted.cpu().numpy())):
             pred = predicted.cpu().numpy()[i]
-            io.imsave(r'{}\{}{}\{}.png'.format(savepath, pred, labels.cpu().numpy()[i], '%s' % count),
+            io.imsave(r'{0}\{1}{2}\{1}{2}_{3}.png'.format(savepath, pred, labels.cpu().numpy()[i], '%s' % count),
                       np.transpose(images[i].cpu().numpy(), (1, 2, 0)))
             count += 1
 
