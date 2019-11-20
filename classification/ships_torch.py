@@ -180,11 +180,10 @@ for epoch in range(num_epochs):  # loop over the dataset multiple times
         running_loss += loss.item()
         print_freq = 20
     print('epoch [%d] loss: %.3f' % (epoch + 1, running_loss / (img_count / batch_size)))
+    whole_model_PATH = f'./model_ship_{epoch+1}.pth'
+    torch.save(net, whole_model_PATH)
 
 print('Finished Training')
-
-whole_model_PATH = './cifar_model.pth'
-torch.save(net, whole_model_PATH)
 
 dataiter = iter(testloader)
 images, labels = dataiter.next()
@@ -197,7 +196,7 @@ labels = labels.to(device, dtype=torch.long)
 
 print('GroundTruth: ', ' '.join('%5s' % classes[labels[j]] for j in range(batch_size)))
 
-net = torch.load(whole_model_PATH)
+net = torch.load(f'./model_ship_{num_epochs}.pth')
 net.eval()
 
 outputs = net(images)
